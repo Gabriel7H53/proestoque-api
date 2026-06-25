@@ -8,9 +8,19 @@ const getPrismaInstance = () => {
 
   const isProduction = process.env.NODE_ENV === "production" || dbUrl.startsWith("postgresql://") || dbUrl.startsWith("postgres://");
 
-  // Se estiver em produção ou a URL for do PostgreSQL, inicia sem o adapter do SQLite
+  // Se estiver em produção ou a URL for do PostgreSQL, inicia usando o adapter do PostgreSQL (@prisma/adapter-pg)
   if (isProduction) {
+    const { Pool } = require("pg");
+    const { PrismaPg } = require("@prisma/adapter-pg");
+
+    const pool = new Pool({
+      connectionString: dbUrl.startsWith("file:") ? undefined : dbUrl,
+    });
+
+    const adapter = new PrismaPg(pool);
+
     return new PrismaClient({
+      adapter,
       log: process.env.NODE_ENV === "development" ? ["query", "error"] : ["error"],
     });
   }
