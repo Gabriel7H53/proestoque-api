@@ -6,8 +6,10 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 const getPrismaInstance = () => {
   const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
 
-  // Se a URL for do PostgreSQL (produção/Railway), inicia sem o adapter do SQLite
-  if (dbUrl.startsWith("postgresql://") || dbUrl.startsWith("postgres://")) {
+  const isProduction = process.env.NODE_ENV === "production" || dbUrl.startsWith("postgresql://") || dbUrl.startsWith("postgres://");
+
+  // Se estiver em produção ou a URL for do PostgreSQL, inicia sem o adapter do SQLite
+  if (isProduction) {
     return new PrismaClient({
       log: process.env.NODE_ENV === "development" ? ["query", "error"] : ["error"],
     });
